@@ -1,5 +1,5 @@
 const Settings = require('../Models/Settings');
-const cloudinary = require('../services/Cloudinary');
+const cloudinary = require('../Services/Cloudinary');
 const fs = require('fs');
 
 // @desc    Get application settings
