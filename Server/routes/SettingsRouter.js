@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getSettings, updateSettings } = require('../controllers/SettingsController');
+const { getSettings, updateSettings } = require('../Controllers/SettingsController');
 const { verifyToken, isSuperadmin } = require('../Middleware/middleware');
 const multer = require('multer');
 const path = require('path');
