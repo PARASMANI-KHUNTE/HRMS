@@ -5,6 +5,7 @@ import { FaPlus, FaEdit, FaTrash, FaTimes, FaExclamationTriangle, FaSearch } fro
 import Pagination from '../components/Pagination';
 
 const STAFF_ROLES = ['doctor', 'nurse', 'receptionist', 'pharmacist', 'lab technician', 'accountant'];
+const ROLES_WITH_DEPARTMENTS = ['doctor', 'nurse', 'pharmacist', 'lab technician', 'accountant'];
 
 // Add/Edit Staff Modal
 function StaffModal({ isOpen, onClose, onSave, staffMember, hospitals, departments }) {
@@ -12,10 +13,17 @@ function StaffModal({ isOpen, onClose, onSave, staffMember, hospitals, departmen
   const isEditMode = !!staffMember;
 
   const availableDepartments = useMemo(() => {
+    console.log('Hospitals data received in modal:', hospitals);
+    console.log('All departments available in modal:', departments);
     if (!formData.hospital || !hospitals.length || !departments.length) return [];
     const selectedHospital = hospitals.find(h => h._id === formData.hospital);
     if (!selectedHospital || !selectedHospital.departments) return [];
-    return departments.filter(d => selectedHospital.departments.includes(d._id));
+    // Get an array of the IDs of the departments assigned to the selected hospital
+    const assignedDepartmentIds = selectedHospital.departments.map(d => d._id);
+    // Filter the master department list to only include those assigned to the hospital
+    const filtered = departments.filter(d => assignedDepartmentIds.includes(d._id));
+    console.log(`For hospital ${selectedHospital.name}, found departments:`, filtered);
+    return filtered;
   }, [formData.hospital, hospitals, departments]);
 
   useEffect(() => {
@@ -72,7 +80,7 @@ function StaffModal({ isOpen, onClose, onSave, staffMember, hospitals, departmen
             <option value="">Assign to Hospital</option>
             {hospitals.map(h => <option key={h._id} value={h._id}>{h.name}</option>)}
           </select>
-           {formData.role === 'doctor' && (
+           {ROLES_WITH_DEPARTMENTS.includes(formData.role) && (
             <select name="departmentId" value={formData.departmentId} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
                 <option value="">Assign to Department</option>
                 {availableDepartments.map(d => <option key={d._id} value={d._id}>{d.name}</option>)}

@@ -57,7 +57,7 @@ const deleteHospital = async (req, res) => {
 // Get all hospitals
 const getHospitals = async (req, res) => {
     try {
-        const hospitals = await Hospital.find();
+        const hospitals = await Hospital.find().populate('departments');
         res.status(200).json(hospitals);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching hospitals.', error: err.message });

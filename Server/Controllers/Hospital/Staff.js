@@ -30,6 +30,10 @@ const addStaff = async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ message: 'User with this email already exists.' });
         }
+        const existingPhone = await User.findOne({ phone });
+        if (existingPhone) {
+            return res.status(400).json({ message: 'User with this phone number already exists.' });
+        }
 
         const newStaff = new User({
             firstName,
@@ -39,7 +43,7 @@ const addStaff = async (req, res) => {
             password,
             role,
             hospitalId: finalHospitalId,
-            departmentId,
+            departmentId: departmentId || null, // Ensure empty string is saved as null
             createdAt: new Date(),
             updatedAt: new Date()
         });
@@ -48,6 +52,16 @@ const addStaff = async (req, res) => {
         const populatedStaff = await User.findById(newStaff._id).populate('hospitalId', 'name').populate('departmentId', 'name');
         res.status(201).json({ message: 'Staff member added successfully.', staff: populatedStaff });
     } catch (err) {
+        // Handle MongoDB duplicate key error for email/phone
+        if (err.code === 11000) {
+            if (err.keyPattern && err.keyPattern.email) {
+                return res.status(400).json({ message: 'User with this email already exists.' });
+            }
+            if (err.keyPattern && err.keyPattern.phone) {
+                return res.status(400).json({ message: 'User with this phone number already exists.' });
+            }
+            return res.status(400).json({ message: 'Duplicate field error.' });
+        }
         res.status(500).json({ message: 'Error adding staff member.', error: err.message });
     }
 };

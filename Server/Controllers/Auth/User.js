@@ -212,7 +212,7 @@ const ToggleRole = async (req, res) => {
 
 const GetAllUsers = async (req, res) => {
     try {
-        const users = await User.find({}).populate('hospitalId').select('-password'); // Exclude passwords from the result
+        const users = await User.find({}).populate('hospitalId').populate('departmentId').select('-password'); // Exclude passwords from the result
         res.status(200).json(users);
     } catch (err) {
         res.status(500).json({ message: 'Server error while fetching users.', error: err.message });

@@ -221,10 +221,10 @@ export default function SuperadminHospitals() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [hospitalForAssignment, setHospitalForAssignment] = useState(null);
   const [hospitalToDelete, setHospitalToDelete] = useState(null);
   const [selectedHospital, setSelectedHospital] = useState(null);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [hospitalForAssignment, setHospitalForAssignment] = useState(null);
 
   const fetchHospitals = async () => {
     setLoading(true);
@@ -260,6 +260,24 @@ export default function SuperadminHospitals() {
   const handleEditClick = (hospital) => {
     setSelectedHospital(hospital);
     setIsEditModalOpen(true);
+  };
+
+  const handleAssignClick = (hospital) => {
+    setHospitalForAssignment(hospital);
+    setIsAssignModalOpen(true);
+  };
+
+  const handleAssignDepartments = async (hospitalId, departmentIds) => {
+    console.log('Saving department assignments:', { hospitalId, departmentIds }); // DEBUG LOG
+    try {
+      await api.put('/hospital/assign-departments', { hospitalId, departmentIds });
+      toast.success('Departments assigned successfully!');
+      fetchHospitals(); // Refresh the data
+      setIsAssignModalOpen(false);
+      setHospitalForAssignment(null);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to assign departments.');
+    }
   };
 
   const handleUpdateHospital = async (hospitalData) => {
