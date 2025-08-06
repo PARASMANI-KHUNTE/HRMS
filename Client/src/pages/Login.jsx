@@ -49,12 +49,12 @@ export default function Login() {
                   return;
                 }
 
-                if (!decoded || !decoded.user) {
+                if (!decoded || !decoded.role) {
                   toast.error('Invalid token structure.');
                   return;
                 }
                 
-                dispatch(loginAction({ token: data.token, user: decoded.user }));
+                dispatch(loginAction({ token: data.token, user: decoded }));
                 toast.success('Login successful!');
               } else {
                 toast.info('Login successful, but no token received.');
