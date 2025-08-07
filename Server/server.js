@@ -1,72 +1,61 @@
 const express = require("express");
-const app = express();
 const cors = require("cors");
 require("dotenv").config();
 
 const connectDB = require("./Database/DbCongif");
-const UserRouter = require("./Routers/Auth/User");
-const ServicesRouter = require('./Routers/ServicesRouter');
-const HospitalRouter = require('./Routers/Hospital/Hospital');
-const AssignHospitalRouter = require('./Routers/Hospital/AssignHospital');
-const DashboardRouter = require('./Routers/Dashboard');
-const auditLogRouter = require('./Routers/AuditLog');
 
-app.use(express.json());
+// --- Router Imports ---
+const UserRouter = require("./Routes/Auth/User");
+const StaffRouter = require('./Routes/Staff');
+const HospitalRouter = require('./Routes/Hospital/Hospital');
+const DepartmentRouter = require('./Routes/Department');
+const PatientRouter = require('./Routes/Reception/Patient');
+const InvoiceRouter = require('./Routes/Reception/Invoice');
+const PaymentRouter = require('./Routes/Reception/Payment');
+const LabRouter = require('./Routes/Lab/Report');
+const PharmacyRouter = require('./Routes/Pharmacy.js');
+const SettingsRouter = require('./Routes/SettingsRouter');
+const AuditRouter = require('./Routes/AuditLog');
+
+const app = express();
+
+// --- Core Middleware ---
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true
 }));
+app.use(express.json());
 app.use(express.static("public"));
 
-
-
-app.use("/api/auth" , UserRouter);
-app.use("/api/services", ServicesRouter);
-app.use("/api/hospital", HospitalRouter);
-app.use("/api/assign-hospital", AssignHospitalRouter);
-app.use("/api/dashboard", DashboardRouter);
-app.use('/api/audit-logs', auditLogRouter);
-const StaffRouter = require('./Routers/Hospital/Staff');
+// --- API Routes ---
+app.use("/api/auth", UserRouter);
 app.use("/api/staff", StaffRouter);
-const DepartmentRouter = require('./Routers/Hospital/Department');
+app.use("/api/hospital", HospitalRouter);
 app.use("/api/department", DepartmentRouter);
-const DepartmentAssignRouter = require('./Routers/Hospital/DepartmentAssign');
-app.use("/api/department-assign", DepartmentAssignRouter);
-const PatientRouter = require('./Routers/Reception/Patient');
-const InvoiceRouter = require('./Routers/Reception/Invoice');
-const PaymentRouter = require('./Routers/Reception/Payment');
-const SettingsRouter = require('./routes/SettingsRouter');
 app.use("/api/reception/patient", PatientRouter);
 app.use("/api/reception/invoice", InvoiceRouter);
 app.use("/api/reception/payment", PaymentRouter);
+app.use('/api/lab', LabRouter);
+app.use('/api/pharmacy', PharmacyRouter);
 app.use('/api/settings', SettingsRouter);
-const PharmacyProductRouter = require('./Routers/Pharmacy/Product');
-const PharmacyInvoiceRouter = require('./Routers/Pharmacy/Invoice');
-app.use("/api/pharmacy/product", PharmacyProductRouter);
-app.use("/api/pharmacy/invoice", PharmacyInvoiceRouter);
-const LabReportRouter = require('./Routers/Lab/Report');
-app.use("/api/lab/report", LabReportRouter);
+app.use('/api/audit', AuditRouter);
 
-
-
-
-
-
-
-
-app.get("/api/test" , (req , res) => {
+// --- Public & Test Routes ---
+app.get("/api/test", (req, res) => {
     res.send("Hello World");
-})
+});
 
-app.get("/" , (req , res) => {
+app.get("/", (req, res) => {
     res.sendFile(__dirname + "/public/Templates/welcome.html");
-})
+});
 
-app.get("/404" , (req , res) => {
+app.get("/404", (req, res) => {
     res.sendFile(__dirname + "/public/Templates/404.html");
-})
+});
 
+// --- Server Initialization ---
 connectDB();
-app.listen(process.env.PORT , () => {
+app.listen(process.env.PORT, () => {
     console.log(`Server is running on port http://localhost:${process.env.PORT}`);
 });
+

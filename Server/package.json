@@ -22,10 +22,14 @@
     "mime-types": "^3.0.1",
     "mongoose": "^8.17.0",
     "multer": "^2.0.2",
+    "nanoid": "^5.1.5",
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
     "pdfkit": "^0.17.1",
     "twilio": "^5.8.0",
     "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.9.0"
   }
 }

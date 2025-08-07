@@ -112,12 +112,10 @@ export default function SuperadminSettings() {
 
     try {
       const res = await api.post('/auth/user/profile-picture', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       dispatch(login({ token: localStorage.getItem('token'), user: res.data.user }));
-      toast.success('Profile picture updated!');
+      toast.success('Profile picture updated successfully!');
       setProfilePicture(null); // Clear the file input
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to upload picture.');

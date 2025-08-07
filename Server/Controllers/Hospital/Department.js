@@ -1,4 +1,6 @@
 const Department = require('../../Models/Department');
+const User = require('../../Models/User');
+const Hospital = require('../../Models/Hospital');
 
 // Add department (global)
 const addDepartment = async (req, res) => {
@@ -63,4 +65,28 @@ const getDepartments = async (req, res) => {
     }
 };
 
-module.exports = { addDepartment, updateDepartment, deleteDepartment, getDepartments };
+// Get all departments for the logged-in admin's hospital
+const getDepartmentsForAdmin = async (req, res) => {
+    try {
+        const adminUserId = req.user.id;
+
+        // Find the admin to get their hospital ID
+        const admin = await User.findById(adminUserId);
+        if (!admin || !admin.hospitalId) {
+            return res.status(404).json({ message: 'Admin not found or not assigned to a hospital.' });
+        }
+
+        // Find the hospital and populate its departments
+        const hospital = await Hospital.findById(admin.hospitalId).populate('departments');
+        if (!hospital) {
+            return res.status(404).json({ message: 'Hospital not found.' });
+        }
+
+        res.status(200).json(hospital.departments);
+    } catch (err) {
+        console.error("Error fetching departments for admin:", err);
+        res.status(500).json({ message: 'Server error while fetching departments.', error: err.message });
+    }
+};
+
+module.exports = { addDepartment, updateDepartment, deleteDepartment, getDepartments, getDepartmentsForAdmin };

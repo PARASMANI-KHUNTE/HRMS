@@ -21,6 +21,12 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ReceptionistDashboard from "./pages/ReceptionistDashboard";
 import LabDashboard from "./pages/LabDashboard";
 import PharmacistDashboard from "./pages/PharmacistDashboard";
+import PharmacyInventory from "./pages/Pharmacy/PharmacyInventory";
+import PharmacyBilling from "./pages/Pharmacy/PharmacyBilling";
+import PharmacyInvoices from "./pages/Pharmacy/PharmacyInvoices";
+import PharmacyReturns from "./pages/Pharmacy/PharmacyReturns";
+import PharmacyDashboard from "./pages/Pharmacy/PharmacyDashboard";
+import PharmacyReports from "./pages/Pharmacy/PharmacyReports";
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthRedirector from './components/AuthRedirector';
 
@@ -100,8 +106,15 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['lab']} />}>
             <Route path="/lab/*" element={<LabDashboard />} />
           </Route>
-          <Route element={<ProtectedRoute allowedRoles={['pharmacist']} />}>
-            <Route path="/pharmacist/*" element={<PharmacistDashboard />} />
+          <Route element={<ProtectedRoute allowedRoles={['pharmacist', 'admin', 'superadmin']} />}>
+            <Route path="/pharmacist" element={<PharmacistDashboard />}>
+              <Route index element={<PharmacyDashboard />} />
+              <Route path="inventory" element={<PharmacyInventory />} />
+              <Route path="billing" element={<PharmacyBilling />} />
+              <Route path="invoices" element={<PharmacyInvoices />} />
+              <Route path="returns" element={<PharmacyReturns />} />
+              <Route path="reports" element={<PharmacyReports />} />
+            </Route>
           </Route>
           {/* Add role-based panels here as you build them */}
           <Route path="*" element={<Navigate to="/" />} />

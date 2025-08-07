@@ -4,69 +4,10 @@ const { createToken } = require('../../Middleware/middleware');
 const { uploadFile } = require("../../Services/Cloudinary");
 const { logAction } = require('../../Utils/auditLogger');
 const { sendMail } = require("../../Services/Gmail");
+const { sendSms } = require("../../Services/Twilio");
+const { generateOtp } = require('../../Utils/otpGenerator');
 
-const CreateUser = async (req, res) => {
-    const { firstName, lastName, phone, email, password, role, hospital } = req.body;
-    if (!firstName || !lastName || !phone || !email || !password) {
-        return res.status(400).json({ message: "All fields are required" });
-    }
 
-    try {
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: `An account with the email '${email}' already exists.` });
-        }
-        const existingPhone = await User.findOne({ phone });
-        if (existingPhone) {
-            return res.status(400).json({ message: `An account with the phone number '${phone}' already exists.` });
-        }
-
-        const newUser = new User({
-            firstName,
-            lastName,
-            phone,
-            email,
-            password,
-            role: role || 'user', // Default to 'user' if no role is provided
-            hospitalId: hospital, // Assign hospital
-            createdAt: new Date(),
-            updatedAt: new Date()
-        });
-
-        await newUser.save(); // The pre-save hook will hash the password
-
-        await logAction({
-            actor: req.user?.id, // ID of admin creating the user, if available
-            action: 'CREATE_USER',
-            target: 'User',
-            targetId: newUser._id,
-            details: { email: newUser.email, role: newUser.role }
-        }, req);
-
-        const populatedUser = await User.findById(newUser._id).populate('hospitalId');
-
-        // Send confirmation email
-        try {
-            await sendMail(
-                email,
-                'Welcome to HMS! Your Registration is Successful',
-                `<h2>Hi ${firstName},</h2><p>Your registration at HMS was successful! You can now log in with your email address.</p>`
-            );
-        } catch (mailErr) {
-            console.error("Confirmation email failed to send:", mailErr);
-            // Still return success, but include the user and a note about the email
-            return res.status(201).json({ 
-                message: "User registered, but confirmation email failed.", 
-                user: populatedUser 
-            });
-        }
-
-        res.status(201).json({ message: "User registered successfully.", user: populatedUser });
-
-    } catch (err) {
-        res.status(500).json({ message: 'Server error during user creation.', error: err.message });
-    }
-}
 
 const LoginUser = async (req, res) => {
 
@@ -116,76 +57,7 @@ const LoginUser = async (req, res) => {
     }
 }
 
-const DeleteUser = async (req, res) => {
-    const { email } = req.body;
-    if (!email) {
-        return res.status(400).json({ message: "Email is required" });
-    }
 
-    try {
-        const deletedUser = await User.findOneAndDelete({ email });
-        if (!deletedUser) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        await logAction({
-            actor: req.user?.id, // Admin performing the action
-            action: 'DELETE_USER',
-            target: 'User',
-            targetId: deletedUser._id,
-            details: { email: deletedUser.email, role: deletedUser.role }
-        }, req);
-
-        res.status(200).json({ message: 'User deleted successfully.' });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error during user deletion.', error: err.message });
-    }
-}
-
-
-const UpdateUser = async (req, res) => {
-    const { _id, ...updateData } = req.body;
-
-    if (!_id) {
-        return res.status(400).json({ message: "User ID is required to update." });
-    }
-
-    if (updateData.hospital) {
-        updateData.hospitalId = updateData.hospital;
-        delete updateData.hospital;
-    }
-
-    // Prevent role changes through this endpoint for security
-    delete updateData.role;
-    // Prevent password changes through this endpoint
-    delete updateData.password;
-
-    try {
-        const user = await User.findById(_id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        // Apply updates
-        Object.assign(user, updateData);
-        await user.save();
-
-        await logAction({
-            actor: req.user?.id || _id, // User updating their own profile or an admin
-            action: 'UPDATE_USER',
-            target: 'User',
-            targetId: _id,
-            details: { updatedFields: Object.keys(updateData) }
-        }, req);
-
-        const updatedUser = await User.findById(_id).populate('hospitalId');
-
-        res.status(200).json({ message: "User updated successfully.", user: updatedUser });
-
-    } catch (err) {
-        res.status(500).json({ message: 'Server error during user update.', error: err.message });
-    }
-}
 
 
 const ToggleRole = async (req, res) => {
@@ -256,7 +128,7 @@ const updateUserProfilePicture = async (req, res) => {
         // 3. Save the secure URL and retrieve the updated user document
         const updatedUser = await User.findByIdAndUpdate(
             userId, 
-            { profilePictureUrl: result.secure_url, updatedAt: new Date() },
+            { profilePicture: result.secure_url, updatedAt: new Date() }, // Corrected field name
             { new: true } // This option returns the modified document
         );
 
@@ -285,37 +157,70 @@ const updateUserProfilePicture = async (req, res) => {
 
 // 1. Request Password Reset (generate and send OTP)
 const requestPasswordReset = async (req, res) => {
+    console.log('--- Password Reset Request Received ---');
     const { email, phone } = req.body;
+    console.log(`1. Email: ${email}, Phone: ${phone}`);
+
     if (!email && !phone) {
+        console.log('❌ Error: Email or phone is required.');
         return res.status(400).json({ message: "Email or phone is required." });
     }
+
     try {
-        // Find user by email or phone
         const user = await User.findOne(email ? { email } : { phone });
         if (!user) {
+            console.log('❌ Error: User not found.');
             return res.status(404).json({ message: "User not found." });
         }
-        // Generate OTP and expiry
-        const otp = generateOtp().toString();
+        console.log(`2. User found: ${user.email}`);
+
+        const otp = generateOtp();
+        console.log(`3. Generated OTP: ${otp}`);
+
         const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
         user.resetOtp = otp;
         user.resetOtpExpires = expiry;
         await user.save();
+        console.log('4. OTP and expiry saved to user document in DB.');
+
         // Send OTP via email
         if (user.email) {
-            await sendMail(
-                user.email,
-                'Password Reset OTP',
-                `<h2>Your OTP for password reset is: <b>${otp}</b></h2><p>This OTP will expire in 10 minutes.</p>`
-            );
+            console.log('5a. Attempting to send email...');
+            try {
+                await sendMail(
+                    user.email,
+                    'Your Password Reset OTP',
+                    `<h2>Your OTP for password reset is: <b>${otp}</b></h2><p>This OTP will expire in 10 minutes.</p>`
+                );
+                console.log('✅ Email sent successfully.');
+            } catch (mailError) {
+                console.error('❌ CRITICAL: Failed to send OTP email:', mailError);
+                return res.status(500).json({ message: 'Failed to send OTP email. Please check server configuration.', error: mailError.message });
+            }
         }
+
         // Send OTP via SMS
         if (user.phone) {
-            await sendSms(user.phone, `Your HMS password reset OTP is: ${otp}`);
+            console.log('5b. Attempting to send SMS...');
+            try {
+                await sendSms(user.phone, `Your HMS password reset OTP is: ${otp}`);
+                console.log('✅ SMS sent successfully.');
+            } catch (smsError) {
+                console.error('⚠️ WARNING: Failed to send OTP SMS:', smsError);
+                // Do not return, as email might have succeeded. Log and continue.
+            }
         }
-        res.status(200).json({ message: "OTP sent to your email and phone (if registered)." });
+
+        console.log('6. Responding to client with success.');
+        res.status(200).json({ message: 'OTP sent successfully. Please check your email and/or phone.' });
+        console.log('--- Password Reset Request Finished Successfully ---\n');
+
     } catch (err) {
-        res.status(500).json({ message: 'Error generating OTP.', error: err.message });
+        console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        console.error('!!! PASSWORD RESET CONTROLLER CRITICAL ERROR !!!');
+        console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        console.error(err);
+        res.status(500).json({ message: 'Error processing password reset request.', error: err.message });
     }
 };
 
@@ -452,4 +357,4 @@ const updateNotificationPreferences = async (req, res) => {
     }
 };
 
-module.exports = {CreateUser , LoginUser , DeleteUser , UpdateUser , ToggleRole , GetAllUsers , GetUser, updateUserProfilePicture, requestPasswordReset, verifyOtp, resetPassword, changePassword, updateNotificationPreferences};
+module.exports = { LoginUser , ToggleRole , GetAllUsers , GetUser, updateUserProfilePicture, requestPasswordReset, verifyOtp, resetPassword, changePassword, updateNotificationPreferences};

@@ -40,8 +40,8 @@ router.put("/toggle" , verifyTokenAndRole(['admin','superadmin']), (req , res) =
 })
 
 // Password reset with OTP endpoints
-router.post('/request-password-reset', (req, res) => {
-    require('../../Controllers/Auth/User').requestPasswordReset(req, res);
+router.post('/forgot-password', (req, res) => {
+    requestPasswordReset(req, res);
 });
 
 router.post('/verify-otp', (req, res) => {

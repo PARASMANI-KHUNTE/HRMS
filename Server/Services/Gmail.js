@@ -37,4 +37,17 @@ const sendMailWithAttachment = (to, subject, html, attachment) => {
     return transporter.sendMail(mailOptions);
 };
 
+// Verify the transporter configuration on startup
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        console.error('!!! GMAIL TRANSPORTER ERROR - EMAIL WILL NOT WORK !!!');
+        console.error('!!! Please check your EMAIL_HOST, EMAIL_USER, and EMAIL_PASS in the Server/.env file.');
+        console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        console.error(error);
+    } else {
+        console.log('✅ Gmail Transporter is configured correctly. Ready to send emails.');
+    }
+});
+
 module.exports = {sendMail , sendMailWithAttachment};
