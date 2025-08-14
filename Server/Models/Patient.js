@@ -9,6 +9,7 @@ const patientSchema = new Schema({
     gender: { type: String, enum: ['male', 'female', 'other'] },
     dob: { type: Date },
     address: { type: String },
+    admitted: { type: Boolean, default: false },
     hospitalId: { type: Schema.Types.ObjectId, ref: 'Hospital', required: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     createdAt: { type: Date, default: Date.now },

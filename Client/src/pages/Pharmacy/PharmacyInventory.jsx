@@ -132,7 +132,7 @@ const PharmacyInventory = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{med.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{med.category}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{med.stockQuantity}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${med.unitPrice.toFixed(2)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{med.unitPrice.toFixed(2)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button onClick={() => openEditModal(med)} className="text-indigo-600 hover:text-indigo-900 mr-4"><FaEdit /></button>
                                         <button onClick={() => handleDeleteMedicine(med._id)} className="text-red-600 hover:text-red-900"><FaTrash /></button>

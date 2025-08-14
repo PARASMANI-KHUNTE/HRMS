@@ -24,9 +24,13 @@ import PharmacistDashboard from "./pages/PharmacistDashboard";
 import PharmacyInventory from "./pages/Pharmacy/PharmacyInventory";
 import PharmacyBilling from "./pages/Pharmacy/PharmacyBilling";
 import PharmacyInvoices from "./pages/Pharmacy/PharmacyInvoices";
+import InvoicePrint from "./pages/Pharmacy/InvoicePrint";
 import PharmacyReturns from "./pages/Pharmacy/PharmacyReturns";
 import PharmacyDashboard from "./pages/Pharmacy/PharmacyDashboard";
 import PharmacyReports from "./pages/Pharmacy/PharmacyReports";
+import PharmacyCategories from "./pages/Pharmacy/PharmacyCategories";
+import PharmacyStockAlert from "./pages/Pharmacy/PharmacyStockAlert";
+import PharmacyPurchaseAdd from "./pages/Pharmacy/PharmacyPurchaseAdd";
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthRedirector from './components/AuthRedirector';
 
@@ -112,6 +116,10 @@ function App() {
               <Route path="inventory" element={<PharmacyInventory />} />
               <Route path="billing" element={<PharmacyBilling />} />
               <Route path="invoices" element={<PharmacyInvoices />} />
+              <Route path="invoices/print/:id" element={<InvoicePrint />} />
+              <Route path="categories" element={<PharmacyCategories />} />
+              <Route path="stock-alert" element={<PharmacyStockAlert />} />
+              <Route path="purchase/add" element={<PharmacyPurchaseAdd />} />
               <Route path="returns" element={<PharmacyReturns />} />
               <Route path="reports" element={<PharmacyReports />} />
             </Route>

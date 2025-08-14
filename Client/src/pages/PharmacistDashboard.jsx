@@ -1,14 +1,18 @@
 import React from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaPills, FaCapsules, FaSignOutAlt, FaFileInvoiceDollar, FaHistory, FaUndoAlt } from 'react-icons/fa';
-
+import { FaPills, FaCapsules, FaSignOutAlt, FaFileInvoiceDollar, FaHistory, FaUndoAlt, FaTags, FaExclamationTriangle, FaCartPlus } from 'react-icons/fa';
+import { useDispatch } from 'react-redux';
+import { logout } from '../store/slices/authSlice';
 const navItems = [
   { label: 'Dashboard', icon: <FaPills />, path: '/pharmacist' },
   { label: 'Inventory', icon: <FaCapsules />, path: '/pharmacist/inventory' },
   { label: 'Billing', icon: <FaFileInvoiceDollar />, path: '/pharmacist/billing' },
   { label: 'Invoices', icon: <FaHistory />, path: '/pharmacist/invoices' },
   { label: 'Returns', icon: <FaUndoAlt />, path: '/pharmacist/returns' },
+  { label: 'Categories', icon: <FaTags />, path: '/pharmacist/categories' },
+  { label: 'Stock Alert', icon: <FaExclamationTriangle />, path: '/pharmacist/stock-alert' },
+  { label: 'Add Purchase', icon: <FaCartPlus />, path: '/pharmacist/purchase/add' },
 ];
 
 const DashboardHome = () => (

@@ -16,6 +16,7 @@ const PharmacyBilling = () => {
     const [isMedicineLoading, setIsMedicineLoading] = useState(false);
 
     const [selectedPatient, setSelectedPatient] = useState(null);
+    const [isCreditSale, setIsCreditSale] = useState(false);
     const [invoiceItems, setInvoiceItems] = useState([]);
 
     const totalAmount = invoiceItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -47,7 +48,7 @@ const PharmacyBilling = () => {
             }
             setIsPatientLoading(true);
             try {
-                const { data } = await api.get(`/reception/patients?search=${debouncedPatientSearch}&limit=5`);
+                const { data } = await api.get(`/pharmacy/patients?search=${debouncedPatientSearch}&limit=5`);
                 setPatientResults(data.patients);
             } catch (error) {
                 toast.error('Failed to search for patients.');
@@ -60,6 +61,7 @@ const PharmacyBilling = () => {
 
     const selectPatient = (patient) => {
         setSelectedPatient(patient);
+        setIsCreditSale(false); // reset credit on new selection
         setPatientSearchTerm('');
         setPatientResults([]);
     };
@@ -87,7 +89,8 @@ const PharmacyBilling = () => {
             patientId: selectedPatient._id,
             items: invoiceItems.map(item => ({ medicineId: item.medicineId, quantity: item.quantity, price: item.price })),
             totalAmount,
-            paymentStatus: 'Paid', // Defaulting to 'Paid' for now
+            paymentMethod: isCreditSale ? 'Credit' : 'Cash',
+            status: isCreditSale ? 'Unpaid' : 'Paid',
         };
 
         try {
@@ -98,6 +101,7 @@ const PharmacyBilling = () => {
             setInvoiceItems([]);
             setPatientSearchTerm('');
             setMedicineSearchTerm('');
+            setIsCreditSale(false);
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to create invoice.';
             toast.error(errorMessage);
@@ -120,8 +124,8 @@ const PharmacyBilling = () => {
                         : item
                 );
             } else {
-                // Add new item
-                return [...prevItems, { medicineId: medicine._id, name: medicine.name, price: medicine.price, quantity: 1 }];
+                // Add new item (use unitPrice from medicine)
+                return [...prevItems, { medicineId: medicine._id, name: medicine.name, price: medicine.unitPrice, quantity: 1 }];
             }
         });
         setMedicineSearchTerm(''); // Clear search after adding
@@ -159,8 +163,8 @@ const PharmacyBilling = () => {
                                     <div className="absolute z-20 w-full bg-white shadow-lg rounded-md mt-2 border max-h-60 overflow-y-auto">
                                         {patientResults.map(p => (
                                             <div key={p._id} onClick={() => selectPatient(p)} className="p-3 hover:bg-indigo-50 cursor-pointer border-b">
-                                                <p className="font-semibold">{p.name}</p>
-                                                <p className="text-sm text-gray-600">ID: {p.patientId}</p>
+                                                <p className="font-semibold">{p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim()}</p>
+                                                <p className="text-sm text-gray-600">{p.phone || p.email || ''}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -170,12 +174,26 @@ const PharmacyBilling = () => {
                             <div className="bg-indigo-50 p-4 rounded-lg">
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <p className="font-bold text-indigo-800">{selectedPatient.name}</p>
-                                        <p className="text-sm text-indigo-600">ID: {selectedPatient.patientId}</p>
+                                        <p className="font-bold text-indigo-800">{selectedPatient.name || `${selectedPatient.firstName || ''} ${selectedPatient.lastName || ''}`.trim()}</p>
+                                        <p className="text-sm text-indigo-600">{selectedPatient.phone || selectedPatient.email || ''}</p>
                                     </div>
                                     <button onClick={() => setSelectedPatient(null)} className="text-red-500 hover:text-red-700">
                                         <FaTimes />
                                     </button>
+                                </div>
+                                <div className="mt-3 flex items-center gap-2">
+                                    <input
+                                        id="creditSale"
+                                        type="checkbox"
+                                        className="h-4 w-4"
+                                        checked={isCreditSale}
+                                        onChange={(e) => setIsCreditSale(e.target.checked)}
+                                        disabled={!selectedPatient?.admitted}
+                                        title={!selectedPatient?.admitted ? 'Credit sales are only for admitted patients' : ''}
+                                    />
+                                    <label htmlFor="creditSale" className={`text-sm ${!selectedPatient?.admitted ? 'text-gray-400' : 'text-gray-700'}`}>
+                                        Credit Sale (admitted patients only)
+                                    </label>
                                 </div>
                             </div>
                         )}
@@ -235,8 +253,8 @@ const PharmacyBilling = () => {
                                                     min="1"
                                                 />
                                             </td>
-                                            <td className="td-style">${item.price.toFixed(2)}</td>
-                                            <td className="td-style font-semibold">${(item.price * item.quantity).toFixed(2)}</td>
+                                            <td className="td-style">₹{item.price.toFixed(2)}</td>
+                                            <td className="td-style font-semibold">₹{(item.price * item.quantity).toFixed(2)}</td>
                                             <td className="td-style">
                                                 <button onClick={() => removeInvoiceItem(item.medicineId)} className="text-red-500 hover:text-red-700">
                                                     <FaTrash />
@@ -255,7 +273,7 @@ const PharmacyBilling = () => {
                     <div className="mt-6 pt-4 border-t-2 border-dashed">
                         <div className="flex justify-between items-center text-xl font-bold text-gray-800">
                             <span>Total Amount:</span>
-                            <span>${totalAmount.toFixed(2)}</span>
+                            <span>₹{totalAmount.toFixed(2)}</span>
                         </div>
                         <button onClick={handleCreateInvoice} className="btn-primary w-full mt-6 text-lg" disabled={!selectedPatient || invoiceItems.length === 0}>
                             Create Invoice

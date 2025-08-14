@@ -46,7 +46,7 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['Cash', 'Credit Card', 'Insurance', 'Other'],
+        enum: ['Cash', 'Credit', 'Credit Card', 'Insurance', 'Other'],
         default: 'Cash',
     },
     status: {

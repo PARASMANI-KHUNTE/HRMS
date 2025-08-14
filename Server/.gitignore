@@ -22,3 +22,9 @@ __tests__/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+
+seed_medicines.js
+seed_patients.js
+/scripts
+seedPharmacy.js

@@ -47,6 +47,15 @@ const PharmacyDashboard = () => {
         fetchDashboardData();
     }, []);
 
+    const displayPatientName = (patient) => {
+        if (!patient) return '-';
+        if (patient.name) return patient.name;
+        const fn = patient.firstName || '';
+        const ln = patient.lastName || '';
+        const full = `${fn} ${ln}`.trim();
+        return full || patient.email || patient.phone || '-';
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -86,7 +95,7 @@ const PharmacyDashboard = () => {
                                 {recentInvoices.map(invoice => (
                                     <tr key={invoice._id}>
                                         <td className="td-style font-medium">{invoice._id}</td>
-                                        <td className="td-style">{invoice.patientId.name}</td>
+                                        <td className="td-style">{displayPatientName(invoice.patient)}</td>
                                         <td className="td-style">${invoice.totalAmount.toFixed(2)}</td>
                                         <td className="td-style">{format(new Date(invoice.createdAt), 'PP')}</td>
                                     </tr>

@@ -13,7 +13,7 @@ const PharmacyReturns = () => {
 
     const totalRefundAmount = Object.entries(itemsToReturn).reduce((acc, [medId, quantity]) => {
         const item = foundInvoice?.items.find(i => i.medicineId._id === medId);
-        return acc + (item ? item.price * quantity : 0);
+        return acc + (item ? (item.unitPrice || 0) * quantity : 0);
     }, 0);
 
     const handleSearch = async (e) => {
@@ -147,8 +147,8 @@ const PharmacyReturns = () => {
                                                 min="1"
                                             />
                                         </td>
-                                        <td className="td-style">${item.price.toFixed(2)}</td>
-                                        <td className="td-style font-semibold">${(item.price * item.quantity).toFixed(2)}</td>
+                                        <td className="td-style">₹{(item.unitPrice || 0).toFixed(2)}</td>
+                                        <td className="td-style font-semibold">₹{(((item.unitPrice || 0) * item.quantity) || 0).toFixed(2)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -156,7 +156,7 @@ const PharmacyReturns = () => {
                     </div>
                     <div className="mt-6 border-t-2 border-dashed pt-6 flex justify-between items-center">
                         <div className="text-xl font-bold text-gray-800">
-                            Total Refund: <span className="text-green-600">${totalRefundAmount.toFixed(2)}</span>
+                            Total Refund: <span className="text-green-600">₹{totalRefundAmount.toFixed(2)}</span>
                         </div>
                         <button 
                             onClick={handleProcessReturn} 
