@@ -5,7 +5,7 @@ require("dotenv").config();
 const connectDB = require("./Database/DbCongif");
 
 // --- Router Imports ---
-const UserRouter = require("./Routes/Auth/User");
+const UserRouter = require("./Routes/Auth/User.js");
 const StaffRouter = require('./Routes/Staff');
 const HospitalRouter = require('./Routes/Hospital/Hospital');
 const DepartmentRouter = require('./Routes/Department');
