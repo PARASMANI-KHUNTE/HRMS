@@ -5,17 +5,26 @@ require("dotenv").config();
 const connectDB = require("./Database/DbCongif");
 
 // --- Router Imports ---
-const UserRouter = require("./Routes/Auth/User.js");
-const StaffRouter = require('./Routes/Staff');
-const HospitalRouter = require('./Routes/Hospital/Hospital');
-const DepartmentRouter = require('./Routes/Department');
-const PatientRouter = require('./Routes/Reception/Patient');
-const InvoiceRouter = require('./Routes/Reception/Invoice');
-const PaymentRouter = require('./Routes/Reception/Payment');
-const LabRouter = require('./Routes/Lab/Report');
+let UserRouter;
+try {
+  UserRouter = require("./Routes/Auth/User.js");
+} catch (e) {
+  try {
+    UserRouter = require("./Routes/Auth/user.js");
+  } catch (_e) {
+    throw e; // surface the original error
+  }
+}
+const StaffRouter = require('./Routes/Staff.js');
+const HospitalRouter = require('./Routes/Hospital/Hospital.js');
+const DepartmentRouter = require('./Routes/Department.js');
+const PatientRouter = require('./Routes/Reception/Patient.js');
+const InvoiceRouter = require('./Routes/Reception/Invoice.js');
+const PaymentRouter = require('./Routes/Reception/Payment.js');
+const LabRouter = require('./Routes/Lab/Report.js');
 const PharmacyRouter = require('./Routes/Pharmacy.js');
-const SettingsRouter = require('./Routes/SettingsRouter');
-const AuditRouter = require('./Routes/AuditLog');
+const SettingsRouter = require('./Routes/SettingsRouter.js');
+const AuditRouter = require('./Routes/AuditLog.js');
 
 const app = express();
 
